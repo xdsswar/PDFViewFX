@@ -13,6 +13,7 @@ import javafx.scene.paint.Color;
 import java.awt.image.BufferedImage;
 import java.awt.print.Pageable;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
@@ -49,7 +50,7 @@ public class PDFView extends Control {
         });
 
         selectedSearchResultProperty().addListener(it -> {
-            final SearchResult result = getSelectedSearchResult();
+            SearchResult result = getSelectedSearchResult();
             if (result != null) {
                 setPage(result.getPageNumber());
             }
@@ -73,7 +74,7 @@ public class PDFView extends Control {
 
     @Override
     public String getUserAgentStylesheet() {
-        return PDFView.class.getResource("pdf-view.css").toExternalForm();
+        return Objects.requireNonNull(PDFView.class.getResource("pdf-view.css")).toExternalForm();
     }
 
     /**
@@ -447,7 +448,13 @@ public class PDFView extends Control {
      */
     public final void load(File file) {
         Objects.requireNonNull(file, "file can not be null");
-        load(() -> new PDFBoxDocument(file));
+        load(() -> {
+            try {
+                return new PDFBoxDocument(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
